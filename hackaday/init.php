@@ -34,8 +34,6 @@ class Hackaday extends Plugin {
 
 
 			if ($featuredImage) {
-		Debug::log("hackaday: " . $article["link"], Debug::$LOG_EXTENDED);
-		Debug::log(print_r($featuredImage, TRUE), Debug::$LOG_EXTENDED);
 				$content = $article["content"];
 				$article["content"] = "<div class=\"fuckyou\">";
 				$article["content"] .= $doc->saveXML($featuredImage);
