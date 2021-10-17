@@ -9,10 +9,12 @@ class af_comics_webtoons extends Plugin {
     }
 
     function init($host) {
-        $host->add_hook($host::HOOK_SANITIZE, $this);
         $host->add_hook($host::HOOK_ARTICLE_FILTER, $this);
     }
 
+    function get_js() {
+        return file_get_contents(__DIR__ . "/init.js");
+    }
 
     function hook_article_filter($article) {
         if (strpos($article["link"], "webtoons.com") === FALSE) {
@@ -41,15 +43,13 @@ class af_comics_webtoons extends Plugin {
                 return $article;
             }
 
-            $basenode = $doc->createElement("div", "");
-            $basenode->setAttribute('webtoons-keepstyle', 'true');
+            $basenode = $doc->createElement("article", "");
 
             foreach ($xpath->query('(//img[@src])', $imagelist) as $entry){
                 $entry->setAttribute("src",$entry->getAttribute("data-url"));
             }
 
-            // don't leave space between images
-            $imagelist->setAttribute('style', 'font-size: 0;');
+            $imagelist->setAttribute('plugin-data-webtoons-fontsize-none', 'true');
 
             $basenode->appendChild($imagelist);
 
@@ -63,17 +63,6 @@ class af_comics_webtoons extends Plugin {
         }
 
         return $article;
-    }
-
-    function hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes) {
-        $xpath = new DOMXPath($doc);
-
-        // if modified by webtoons hook_article_filter, allow style
-        if($xpath->query("//div[@webtoons-keepstyle='true']")->length > 0) {
-            array_splice($disallowed_attributes, array_search("style", $disallowed_attributes), 1);
-        }
-
-        return array($doc, $allowed_elements, $disallowed_attributes);
     }
 
     function api_version() {
