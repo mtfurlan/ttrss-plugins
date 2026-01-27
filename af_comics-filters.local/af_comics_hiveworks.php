@@ -1,8 +1,11 @@
 <?php
 class Af_Comics_Hiveworks extends Af_ComicFilter {
 
+	private $supported = array('gogetaroomie.com', 'littletinythings.com', 'smbc-comics.com');
+
 	function supported() {
-		return array("Many hiveworks RSS feeds, with special stuff for SMBC");
+		return array("Many hiveworks RSS feeds, with special stuff for SMBC, hardcoded support right now: "
+            . implode(",", $this->supported));
 	}
 
 	function getFirstXpathQueryResultOrNull($xpath, $query) {
@@ -14,7 +17,11 @@ class Af_Comics_Hiveworks extends Af_ComicFilter {
 	}
 
 	function process(&$article) {
-		if (strpos($article["author"], "tech@thehiveworks.com") === FALSE) {
+		$link = $article["link"];
+
+		//var_dump($article);
+		//if (strpos($article["author"], "tech@thehiveworks.com") === FALSE) {
+		if (strpos($article["author"], "tech@thehiveworks.com") === FALSE && str_replace($this->supported, '', $link) == $link) {
 			return false;
 		}
 		//Debug::log("hiveworks comic: " . $article["link"], Debug::$LOG_EXTENDED);

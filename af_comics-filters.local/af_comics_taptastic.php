@@ -19,7 +19,7 @@ class Af_Comics_Taptastic extends Af_ComicFilter {
 			$xpath = new DOMXPath($doc);
 
 			$basenode = $xpath->query('(//article[@class="ep-contents"])')->item(0);
-			Debug::log(print_r($basenode, TRUE), Debug::$LOG_EXTENDED);
+			//Debug::log(print_r($basenode, TRUE), Debug::$LOG_EXTENDED);
 
 
 			if ($basenode) {
