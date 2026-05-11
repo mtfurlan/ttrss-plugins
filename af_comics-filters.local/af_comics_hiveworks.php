@@ -1,80 +1,89 @@
 <?php
 class Af_Comics_Hiveworks extends Af_ComicFilter {
 
-	private $supported = array('gogetaroomie.com', 'littletinythings.com', 'smbc-comics.com');
+    private $supportedList = array('littletinythings.com', 'smbc-comics.com', 'egscomics.com', 'girlgeniusonline.com');
 
-	function supported() {
-		return array("Many hiveworks RSS feeds, with special stuff for SMBC, hardcoded support right now: "
-            . implode(",", $this->supported));
-	}
+    function supported() {
+        return array("Hiveworks(and maybe ex-hiveworks?) RSS feeds, with special stuff for SMBC, urls detected: "
+            . implode(",", $this->supportedList));
+    }
 
-	function getFirstXpathQueryResultOrNull($xpath, $query) {
-		$results = $xpath->query($query);
-		if($results->length == 0) {
-			return null;
-		}
-		return $results->item(0);
-	}
+    function getFirstXpathQueryResultOrNull($xpath, $query) {
+        $results = $xpath->query($query);
+        if($results->length == 0) {
+            return null;
+        }
+        return $results->item(0);
+    }
 
-	function process(&$article) {
-		$link = $article["link"];
+    // return if we are intended to handle this url
+    function process(&$article) {
+        $link = $article["link"];
+        $host = parse_url($link)['host'];
+        $hostArr = explode(".", $host);
+        $host = $hostArr[array_key_last($hostArr)-1] . "." . $hostArr[array_key_last($hostArr)];
 
-		//var_dump($article);
-		//if (strpos($article["author"], "tech@thehiveworks.com") === FALSE) {
-		if (strpos($article["author"], "tech@thehiveworks.com") === FALSE && str_replace($this->supported, '', $link) == $link) {
-			return false;
-		}
-		//Debug::log("hiveworks comic: " . $article["link"], Debug::$LOG_EXTENDED);
-		//Debug::log(print_r($article, TRUE), Debug::$LOG_EXTENDED);
 
-		$doc = new DOMDocument();
-		@$doc->loadHTML(fetch_file_contents($article["link"]));
+        if(!in_array($host, $this->supportedList) && strpos($article["author"], "tech@thehiveworks.com") === FALSE) {
+            Debug::log("not found af comics " . $host );
+            return false;
+        }
+        Debug::log("hiveworks comic: " . $link, Debug::$LOG_EXTENDED);
+        Debug::log(print_r($article, TRUE), Debug::$LOG_EXTENDED);
 
-		$basenode = false;
+        $doc = new DOMDocument();
+        @$doc->loadHTML(fetch_file_contents($link));
 
-		if ($doc) {
-			$xpath = new DOMXPath($doc);
+        $basenode = false;
 
-			$comicNode = $xpath->query('(//img[@id="cc-comic"])')->item(0);
-			$mouseover = $comicNode->getAttribute('title');
-			//$imgURL = $comicNode->getAttribute('src');
+        if ($doc) {
+            $xpath = new DOMXPath($doc);
 
-			$newsHeader = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-newsheader"]');
-			$publishTime = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-publishtime"]');
-			$newsContentNode = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-newsbody"]');
+            $comicNode = $xpath->query('(//img[@id="cc-comic"])')->item(0);
+            $mouseover = $comicNode->getAttribute('title');
+            //$imgURL = $comicNode->getAttribute('src');
 
-			//Debug::log(print_r($newsContentNode, TRUE), Debug::$LOG_EXTENDED);
+            $newsHeader = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-newsheader"]');
+            $publishTime = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-publishtime"]');
+            $newsContentNode = $this->getFirstXpathQueryResultOrNull($xpath, '//div[@class="cc-newsbody"]');
 
-			if (strpos($article["link"], "smbc-comics.com/comic") !== FALSE) {
-				$extraContent = $xpath->query('(//div[@id="aftercomic"][1])')->item(0)->firstChild;
-			}
+            //Debug::log(print_r($newsContentNode, TRUE), Debug::$LOG_EXTENDED);
 
-			if ($comicNode || $newsContentNode) {
-				$article["content"] = "<div>";
-				$article["content"] .= "<a href=\"{$article["link"]}\">";
-				$article["content"] .= $doc->saveHTML($comicNode);
-				$article["content"] .= "</a>";
-				if($mouseover) {
-					$article["content"] .= "<br><span>$mouseover</span><br>";
-				}
-				if(isset($extraContent)) {
-					$article["content"] .= $doc->saveHTML($extraContent);
-				}
-				if($newsContentNode) {
-					if(isset($newsHeader)) {
-						$article["content"] .= "<h2>$newsHeader->textContent</h2>";
-					} else {
-						$article["content"] .= "<h2>News</h2>";
-					}
-					if(isset($publishTime)) {
-						$article["content"] .= "<small>$publishTime->textContent</small>";
-					}
-					$article["content"] .= $doc->saveHTML($newsContentNode);
-				}
-				$article["content"] .= "</div>";
-			}
-		}
-		return true;
-	}
+            if ($host == "smbc-comics.com") {
+                $extraContent = $xpath->query('//div[@id="aftercomic"]')->item(0)->firstChild;
+            }
+
+            if ($comicNode) {
+                $article["content"] = "<div>";
+                $article["content"] .= "<a href=\"{$link}\">";
+                $article["content"] .= $doc->saveHTML($comicNode);
+                $article["content"] .= "</a>";
+                if($mouseover) {
+                    $article["content"] .= "<br><span>$mouseover</span><br>";
+                }
+                if(isset($extraContent)) {
+                    $article["content"] .= $doc->saveHTML($extraContent);
+                }
+                if($newsContentNode) {
+                    if(isset($newsHeader)) {
+                        $article["content"] .= "<h2>$newsHeader->textContent</h2>";
+                    } else {
+                        $article["content"] .= "<h2>News</h2>";
+                    }
+                    if(isset($publishTime)) {
+                        $article["content"] .= "<small>$publishTime->textContent</small>";
+                    }
+                    $article["content"] .= $doc->saveHTML($newsContentNode);
+                }
+                $article["content"] .= "</div>";
+            } else {
+                Debug::log("failed to find comic node, not updating article " . $link);
+            }
+        } else {
+            Debug::log("failed to fetch " . $link);
+        }
+
+        return true;
+    }
 }
 ?>
