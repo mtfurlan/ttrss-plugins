@@ -6,7 +6,7 @@ class Af_Comics_SF extends Af_ComicFilter {
 	}
 
 	function process(&$article) {
-		if (strpos($article["link"], "samandfuzzy.com") === FALSE) {
+		if (!str_contains($article["link"], "samandfuzzy.com")) {
 			return false;
 		}
 

@@ -5,7 +5,7 @@ class Af_Comics_GG extends Af_ComicFilter {
 	}
 
 	function process(&$article) {
-		if (strpos($article["link"], "girlgeniusonline.com") === FALSE) {
+		if (!str_contains($article["link"], "girlgeniusonline.com")) {
 			return false;
 		}
 

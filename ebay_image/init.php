@@ -16,7 +16,7 @@ class Ebay_Image extends Plugin {
 
 	function hook_article_filter($article) {
 		//Debug::log("ebay: " . $article["link"], Debug::$LOG_EXTENDED);
-		if (strpos($article["link"], "ebay.com") !== FALSE) {
+		if (str_contains($article["link"], "ebay.com")) {
 			//$article["content"] = str_replace("ebayimg.com/thumbs/images", "ebayimg.com/images", $article["content"]);
 			//Debug::log(print_r($article["content"], TRUE), Debug::$LOG_EXTENDED);
 		}

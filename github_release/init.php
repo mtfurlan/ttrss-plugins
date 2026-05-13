@@ -13,7 +13,7 @@ class Github_Release extends Plugin {
 	}
 
 	function hook_subscribe_feed($contents, $url, $auth_login, $auth_pass) {
-		if (strpos($url, "github.com") === FALSE) {
+		if (!str_contains($url, "github.com")) {
 			return $contents;
 		}
 		// so if we are trying to get a github repo, return this so

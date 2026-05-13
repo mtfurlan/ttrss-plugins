@@ -17,7 +17,7 @@ class af_comics_webtoons extends Plugin {
     }
 
     function hook_article_filter($article) {
-        if (strpos($article["link"], "webtoons.com") === FALSE) {
+        if (!str_contains($article["link"], "webtoons.com")) {
             return $article;
         }
         if(!class_exists("af_refspoof")) {

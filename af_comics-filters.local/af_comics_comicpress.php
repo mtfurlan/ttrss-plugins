@@ -59,13 +59,13 @@ class Af_Comics_ComicPress extends Af_ComicFilter {
     function process(&$article) {
         $link = $article["link"];
 
-        if (strpos($article["guid"], "post_type=comic") === FALSE) {
+        if (!str_contains($article["guid"], "post_type=comic")) {
             return false;
         }
-        if (strpos($article["link"], "/comic/") === FALSE) {
+        if (!str_contains($article["link"], "/comic/")) {
             return false;
         }
-        if (strpos($article["content"], "-150x150") === FALSE) {
+        if (!str_contains($article["content"], "-150x150")) {
             return false;
         }
         // not 100% sure it's comicpress, but gonna try anyway?

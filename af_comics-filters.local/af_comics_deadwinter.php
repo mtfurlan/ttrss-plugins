@@ -5,7 +5,7 @@ class Af_Comics_DeadWinter extends Af_ComicFilter {
 	}
 
 	function process(&$article) {
-		if (strpos($article["link"], "deadwinter.cc") === FALSE) {
+		if (!str_contains($article["link"], "deadwinter.cc")) {
 			return false;
 		}
 

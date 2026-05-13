@@ -15,7 +15,7 @@ class Hackaday extends Plugin {
 	}
 
 	function hook_article_filter($article) {
-		if (strpos($article["link"], "hackaday.com") === FALSE) {
+		if (!str_contains($article["link"], "hackaday.com")) {
 			return $article;
 		}
 

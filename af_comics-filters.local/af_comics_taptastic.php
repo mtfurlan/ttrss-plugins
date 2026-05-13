@@ -6,7 +6,7 @@ class Af_Comics_Taptastic extends Af_ComicFilter {
 	}
 
 	function process(&$article) {
-		if (strpos($article["link"], "tapas.io") === FALSE) {
+		if (!str_contains($article["link"], "tapas.io")) {
 			return false;
 		}
 

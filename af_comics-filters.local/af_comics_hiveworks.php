@@ -23,9 +23,7 @@ class Af_Comics_Hiveworks extends Af_ComicFilter {
         $hostArr = explode(".", $host);
         $host = $hostArr[array_key_last($hostArr)-1] . "." . $hostArr[array_key_last($hostArr)];
 
-
-        if(!in_array($host, $this->supportedList) && strpos($article["author"], "tech@thehiveworks.com") === FALSE) {
-            Debug::log("not found af comics " . $host );
+        if(!in_array($host, $this->supportedList) && !str_contains($article["author"], "tech@thehiveworks.com")) {
             return false;
         }
         Debug::log("hiveworks comic: " . $link, Debug::$LOG_EXTENDED);
