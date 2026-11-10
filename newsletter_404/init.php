@@ -14,12 +14,25 @@ class Newsletter_404 extends Plugin {
         $host->add_hook($host::HOOK_ARTICLE_FILTER, $this);
     }
 
+    private function is_newsletter($article) {
+        if (!str_contains($article["link"] ?? "", "www.404media.co")) {
+            return false;
+        }
+        foreach ($article["tags"] ?? [] as $tag) {
+            // they have used "newsletters" and "daily newsletter"
+            if (str_contains(mb_strtolower(trim($tag)), "newsletter")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function hook_article_filter($article) {
-        if (!str_contains($article["link"], "www.404media.co")) {
+        if (!$this->is_newsletter($article)) {
             return $article;
         }
 
-        //Debug::log("404 media: " . $article["link"], Debug::$LOG_EXTENDED);
+        //Debug::log("404 media newsletter: " . $article["link"], Debug::$LOG_EXTENDED);
         //Debug::log(print_r($article, TRUE), Debug::$LOG_EXTENDED);
 
         $doc = new DOMDocument();
@@ -28,8 +41,16 @@ class Newsletter_404 extends Plugin {
         }
         $xpath = new DOMXPath($doc);
 
-        $marker = $xpath->query('//*[@id="around-the-web"]')->item(0);
+        // ghost slugifies heading text into the id, and the wording varies
+        // ("around-the-web", "from-around-the-web", once "more-from-not-404")
+        $marker = $xpath->query('//*[contains(@id, "around-the-web") or @id="more-from-not-404"]')->item(0);
+
         if (!$marker) {
+            user_error(sprintf("404 media: newsletter without around the web: %s ", $article["link"]), E_USER_WARNING);
+            $note = '<p><em>[Newsletter_404] This is a 404 Media newsletter, but the "Around the web" section could not be found.</em></p>';
+            if (!str_contains($article["content"], "[Newsletter_404]")) {
+                $article["content"] = $note . $article["content"];
+            }
             return $article;
         }
         $root = $xpath->query('//div[@id="nl404-root"]')->item(0);
@@ -55,16 +76,11 @@ class Newsletter_404 extends Plugin {
 
         $article["title"] = "Around The Web " . date("Y-m-d", $article["timestamp"] ?? time());
 
-        if (!in_array("around the web", $article["tags"])) {
-            $article["tags"][] = "around the web";
-        }
-
         return $article;
     }
 
     function api_version() {
         return 2;
     }
-
 }
 ?>
